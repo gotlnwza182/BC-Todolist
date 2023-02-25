@@ -4,10 +4,11 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
 const _ = require('lodash');
+require('dotenv').config()
 
 const app = express();
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 
@@ -15,7 +16,15 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
 mongoose.set('strictQuery', false);
-mongoose.connect("mongodb+srv://stgot73:hRzDOAbyQ6BEBx2d@cluster0.8sdps3c.mongodb.net/todolistDB" , {useNewUrlParser : true});
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+}
 
 const itemsSchema = new mongoose.Schema({
   name : {
@@ -144,6 +153,9 @@ app.get("/about", function(req, res){
   res.render("about");
 });
 
-app.listen(PORT, function() {
-  console.log("Server has started successfully");
-});
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+      console.log("Server has started successfully");
+  })
+})
